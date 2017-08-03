@@ -12,56 +12,49 @@ object DockerHelper {
   private val defaultJavaOpts = Seq("-Xms512M", "-Xmx512M")
 
   val mappingsSettings: Seq[Def.Setting[_]] = inConfig(Docker)(Seq(
-    mappings <<= (mappings, name, defaultLinuxInstallLocation, streams) map { (m, n, l, s) =>
+    mappings := {
+      //(mappings, name, defaultLinuxInstallLocation, streams)
       val excludes = List(
-        s"bin/$n.bat"
-      ).map(f => s"$l/$f")
+        s"bin/${name.value}.bat"
+      ).map(f => s"${defaultLinuxInstallLocation.value}/$f")
 
-      m.filterNot { case (_, p) =>
+      mappings.value.filterNot { case (_, p) =>
         val isExclude = excludes.contains(p)
         if (isExclude)
-          s.log.warn(s"docker - excluding $p")
+          streams.value.log.warn(s"docker - excluding $p")
         isExclude
       }
     }
   ))
 
-  val dockerCommandsSetting: Def.Setting[Task[Seq[CmdLike]]] = dockerCommands in Docker <<= (
-    defaultLinuxInstallLocation in Docker,
-    daemonUser in Docker,
-    daemonGroup in Docker,
-    daemonUserUid in Docker,
-    daemonGroupGid in Docker,
-    dockerEntrypoint, dockerExposedPorts, dockerBaseImage, maintainer
-    ) map { (dockerBaseDirectory, user, group, uId, gId, entry, ports, baseImage, m) =>
-
+  val dockerCommandsSetting: Def.Setting[Task[Seq[CmdLike]]] = dockerCommands in Docker := {
+    val dockerBaseDirectory = (defaultLinuxInstallLocation in Docker).value
     val addCmd = {
       val dir = dockerBaseDirectory.dropWhile(_ == '/')
       Cmd("ADD", s"$dir /$dir")
     }
+    val gId = (daemonGroupGid in Docker).value.getOrElse("82")
+    val uId = (daemonUserUid in Docker).value.getOrElse("82")
+    val group = (daemonGroup in Docker).value
+    val user = (daemonUser in Docker).value
+    val entry = dockerEntrypoint.value
 
     val runCmd = {
       MultiRunCmd(
-        s"addgroup -g ${gId.getOrElse("82")} -S $group",
-        s"adduser -u ${uId.getOrElse("82")} -D -S -G $group $user",
+        s"addgroup -g $gId -S $group",
+        s"adduser -u $uId -D -S -G $group $user",
         s"chown -R $user:$group .",
         """sed 's|^java \(.*$opts \)|java \1$JAVA_OPTS |' -i """ + entry.head
       )
     }
 
-    val exposedCmd = {
-      if (ports.isEmpty) None
-      else Some(Cmd("EXPOSE", ports mkString " "))
-    }
-
     Seq(
-      Cmd("FROM", baseImage),
-      Cmd("MAINTAINER", m),
+      Cmd("FROM", dockerBaseImage.value),
+      Cmd("MAINTAINER", maintainer.value),
       addCmd,
       Cmd("WORKDIR", dockerBaseDirectory),
       runCmd,
       Cmd("ENV", "JAVA_OPTS", defaultJavaOpts.mkString("\"", " ", "\""))) ++
-      exposedCmd ++ //not have VOLUME cmd
       Seq(
         Cmd("USER", user),
         ExecCmd("CMD", entry: _*)
