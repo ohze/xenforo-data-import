@@ -14,3 +14,15 @@ before_script:
 script:
 - sbt ++$TRAVIS_SCALA_VERSION test
 - sbt ++$TRAVIS_SCALA_VERSION docker:publish
+
+before_cache:
+# Cleanup the cached directories to avoid unnecessary cache updates
+- find $HOME/.ivy2/cache -name "ivydata-*.properties" -print -delete
+- find $HOME/.sbt        -name "*.lock"               -print -delete
+
+cache:
+  directories:
+  - $HOME/.m2
+  - $HOME/.ivy2/cache
+  - $HOME/.sbt
+  - $HOME/.coursier
