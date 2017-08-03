@@ -23,7 +23,6 @@ lazy val dependencySettings = Seq(
 lazy val packagerSettings = Seq(
   dockerUsername := Some("sandinh"),
   packageName in Docker := "ambry-import-xenforo",
-  dockerUpdateLatest in Docker := true,
   daemonUser in Docker := "ambry",
   daemonUserUid in Docker := Some("82"),
   daemonGroup in Docker := "www-data",
