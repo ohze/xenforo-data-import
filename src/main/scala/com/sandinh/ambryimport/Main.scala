@@ -1,10 +1,9 @@
 package com.sandinh.ambryimport
 
 import io.getquill._
-import scala.concurrent.duration._
-import scala.concurrent.Await
 import com.typesafe.scalalogging.Logger
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.{Failure, Success}
 
 object Main {
   private val logger = Logger[Main.type]
@@ -25,9 +24,11 @@ object Main {
         if (runAvatar) new AvatarImport(boot, ambryApi).run()
         else new AttachmentImport(boot, ambryApi).run()
 
-      while (!f.isCompleted) Thread.sleep(300)
-      val (lastOffset, doneReason) = Await.result(f, 5.seconds)
-      logger.info(s"done at $lastOffset: $doneReason")
+      f.onComplete {
+        case Success((lastOffset, doneReason)) => logger.info(s"done at $lastOffset: $doneReason")
+        case Failure(e) => logger.error("error", e)
+      }
+      while (!f.isCompleted) Thread.sleep(300) //FIXME
     }
   }
 }

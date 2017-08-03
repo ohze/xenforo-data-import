@@ -1,16 +1,13 @@
 package com.sandinh.ambryimport
 
-import better.files._
 import java.nio.file.Files
-import gigahorse._
-import support.okhttp.Gigahorse
-
-import scala.concurrent.Future
+import better.files._
+import com.softwaremill.sttp._
+import com.softwaremill.sttp.okhttp.OkHttpFutureClientHandler
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 class AmbryApi(boot: Boot) {
-  import boot.http
-
   private val AuthorizeHeader = "Authorization" -> boot.conf.getString("ambry.header.authorize")
   private val ServiceIdHeader = "x-ambry-service-id" -> boot.conf.getString("ambry.header.serviceid")
   private val ambryUrl = boot.conf.getString("ambry.url")
@@ -23,19 +20,19 @@ class AmbryApi(boot: Boot) {
 
   def put(file: File, maybeOwner: Option[String], mimeType: String, extra: (String, String)*): Future[String] = {
     val req = maybeOwner.foldLeft(
-      Gigahorse.url(ambryUrl)
-        .withHeaders(
+      sttp.body(file.toJava)
+        .headers(
           AuthorizeHeader,
           ServiceIdHeader,
           "x-ambry-blob-size" -> Files.size(file.path).toString,
           "x-ambry-content-type" -> mimeType
-        ).withHeaders(extra.map { case (k, v) => "x-ambry-um-" + k -> v }: _*)
-        .post(file.toJava)
-    ) { case (r, owner) => r.withHeaders("x-ambry-owner-id" -> owner)}
-
-    http.run(req).flatMap { res =>
-      if(res.status != 201) {
-        Future failed new Exception(s"Put ${file.pathAsString} error: ${res.status}")
+        ).headers(extra.map { case (k, v) => "x-ambry-um-" + k -> v }: _*)
+        .post(uri"$ambryUrl")
+    ) { case (r, owner) => r.headers("x-ambry-owner-id" -> owner)}
+    implicit val handler = OkHttpFutureClientHandler()
+    req.send().flatMap { res =>
+      if(res.code != 201) {
+        Future failed new Exception(s"Put ${file.pathAsString} error: ${res.body}")
       } else {
         Future successful res.header("Location").get.substring(1)
       }
