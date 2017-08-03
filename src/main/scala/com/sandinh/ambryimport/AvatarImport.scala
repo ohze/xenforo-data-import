@@ -16,7 +16,7 @@ class AvatarImport(boot: Boot, ambryApi: AmbryApi) {
   /** @param size l|m|s */
   private def avatarFile(u: XfUser)(size: String): (String, File) = {
     val group = u.userId / 1000
-    size -> File(s"${boot.dataDir}/avatars/$size/$group/${u.userId}.jpg")
+    size -> File(s"${boot.rootDir}${boot.dataDir}/avatars/$size/$group/${u.userId}.jpg")
   }
 
   private def maybeAvatarFiles(u: XfUser): Option[List[(String, File)]] = {
@@ -44,9 +44,9 @@ class AvatarImport(boot: Boot, ambryApi: AmbryApi) {
         Future successful s"avatar file not exists or not readable ${maybeFiles.get}"
       } else {
         Future.traverse(maybeFiles.get) {
-          case (size, f) => ambryApi.put(f, Some(u.userId.toString), "size" -> size).map(size -> _)
-        }.flatMap { ambryIds =>
-          val u2 = u.copy(ambry = Json.toJson(ambryIds).toString)
+          case (size, f) => ambryApi.put(f, u.userId.toString, "size" -> size).map(size -> _)
+        }.flatMap { ambry =>
+          val u2 = u.copy(ambry = Json.toJson(ambry).toString)
           ctx.run(q
             .filter(_.userId == lift(u.userId))
             .update(lift(u2))

@@ -9,6 +9,7 @@ lazy val coreSettings = Seq(
 )
 
 lazy val dependencies = Seq(
+  "org.scalatest" %% "scalatest" % "3.0.3" % "test",
   "com.sksamuel.scrimage" %% "scrimage-core" % "2.1.8",
   "com.typesafe.play" %% "play-json" % "2.6.2",
   "com.eed3si9n" %% "gigahorse-akka-http" % "0.3.1",

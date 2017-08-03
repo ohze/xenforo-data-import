@@ -2,7 +2,6 @@ package com.sandinh.ambryimport
 
 import better.files._
 import java.nio.file.Files
-import com.sksamuel.scrimage.FormatDetector
 import gigahorse._
 import support.akkahttp.Gigahorse
 
@@ -15,24 +14,20 @@ class AmbryApi(boot: Boot) {
   private val ServiceIdHeader = "x-ambry-service-id" -> boot.conf.getString("ambry.header.serviceid")
   private val ambryUrl = boot.conf.getString("ambry.url")
 
-  private def contentType(f: File): String = {
-    import com.sksamuel.scrimage.Format._
+  @inline final def put(file: File, owner: String, extra: (String, String)*): Future[String] =
+    put(file, owner, Utils.contentType(file), extra: _*)
 
-    f.inputStream.map(FormatDetector.detect).collectFirst {
-      case Some(PNG) => "image/png"
-      case Some(JPEG) => "image/jpeg"
-      case Some(GIF) => "image/gif"
-    }.getOrElse("application/octet-stream")
-  }
+  @inline final def put(file: File, owner: String, mimeType: String,  extra: (String, String)*): Future[String] =
+    put(file, Some(owner), mimeType, extra: _*)
 
-  def put(file: File, maybeOwner: Option[String], extra: (String, String)*): Future[String] = {
+  def put(file: File, maybeOwner: Option[String], mimeType: String, extra: (String, String)*): Future[String] = {
     val req = maybeOwner.foldLeft(
       Gigahorse.url(ambryUrl)
         .withHeaders(
           AuthorizeHeader,
           ServiceIdHeader,
           "x-ambry-blob-size" -> Files.size(file.path).toString,
-          "x-ambry-content-type" -> contentType(file)
+          "x-ambry-content-type" -> mimeType
         ).withHeaders(extra.map { case (k, v) => "x-ambry-um-" + k -> v }: _*)
         .post(file.toJava)
     ) { case (r, owner) => r.withHeaders("x-ambry-owner-id" -> owner)}

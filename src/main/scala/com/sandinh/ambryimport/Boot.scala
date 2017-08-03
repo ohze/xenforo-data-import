@@ -13,7 +13,9 @@ class Boot {
   implicit val actorSystem = ActorSystem("gigahorse-akka-http", conf)
   implicit val materializer = ActorMaterializer()
   val http: ReactiveHttpClient = Gigahorse.http(Gigahorse.config, actorSystem)
-  val dataDir: String = conf.getString("xf.datadir")
+  val rootDir: String = conf.getString("xf.dir.root")
+  val dataDir: String = conf.getString("xf.dir.data")
+  val internalDataDir: String = conf.getString("xf.dir.internal")
 
   scala.sys.addShutdownHook {
     http.close()
