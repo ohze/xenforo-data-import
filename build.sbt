@@ -10,7 +10,7 @@ lazy val dependencies = Seq(
   "org.scalatest" %% "scalatest" % "3.0.3" % "test",
   "com.sksamuel.scrimage" %% "scrimage-core" % "2.1.8",
   "com.typesafe.play" %% "play-json" % "2.6.2",
-  "com.eed3si9n" %% "gigahorse-akka-http" % "0.3.1",
+  "com.eed3si9n" %% "gigahorse-asynchttpclient" % "0.3.1",
   "com.github.pathikrit" %% "better-files" % "3.0.0",
   "io.getquill" %% "quill-async-mysql" % "1.3.0",
   "ch.qos.logback" % "logback-classic" % "1.2.3"

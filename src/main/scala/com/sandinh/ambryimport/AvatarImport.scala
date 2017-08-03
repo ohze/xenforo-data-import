@@ -4,14 +4,14 @@ import better.files.File
 import com.sandinh.ambryimport.model.XfUser
 import com.typesafe.scalalogging.Logger
 import play.api.libs.json.Json
-
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Success, Try}
 
 class AvatarImport(boot: Boot, ambryApi: AmbryApi) {
   private val logger = Logger[AvatarImport]
   private val avatarSizes = List("l", "m", "s")
-  private val LIMIT = 100
+  private val LIMIT = 3
 
   /** @param size l|m|s */
   private def avatarFile(u: XfUser)(size: String): (String, File) = {
@@ -25,7 +25,6 @@ class AvatarImport(boot: Boot, ambryApi: AmbryApi) {
   }
 
   import Main.ctx, ctx._
-  import boot.actorSystem.dispatcher
   private val q = quote(query[XfUser])
 
   /**
@@ -78,9 +77,9 @@ class AvatarImport(boot: Boot, ambryApi: AmbryApi) {
           case xs =>
             //run on xs.zipWithIndex with stopCondition = `i` == last item's index
             Batching.run[Int, Int](
-              0,
-              i => logic1(xs(i)).map {
-                case null if i == xs.length - 1 => i -> ReasonDoneOneBatch
+              from,
+              i => logic1(xs(i - from)).map {
+                case null if i - from == xs.length - 1 => i -> ReasonDoneOneBatch
                 case x => i -> x
               },
               _ + 1
@@ -97,5 +96,5 @@ class AvatarImport(boot: Boot, ambryApi: AmbryApi) {
       _ + 1)
   }
 
-  def run(): Future[(Index, String)] = allBatch(0, runOne)
+  def run(): Future[(Int, String)] = allBatch(0, runOne)
 }

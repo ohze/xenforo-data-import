@@ -1,10 +1,10 @@
 package com.sandinh.ambryimport
 
 import better.files.File
-import com.sandinh.ambryimport.model.{XfAttachmentData, XfUser}
+import com.sandinh.ambryimport.model.XfAttachmentData
 import com.typesafe.scalalogging.Logger
 import play.api.libs.json.Json
-
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Future
 import scala.util.{Success, Try}
@@ -31,7 +31,6 @@ class AttachmentImport(boot: Boot, ambryApi: AmbryApi) {
     s"${boot.rootDir}${boot.dataDir}/attachments/${d.dataId /1000}/${d.dataId}-${d.fileHash}.jpg"
 
   import Main.ctx
-  import boot.actorSystem.dispatcher
   import ctx._
   private val q = quote(query[XfAttachmentData])
 
@@ -111,5 +110,5 @@ class AttachmentImport(boot: Boot, ambryApi: AmbryApi) {
       _ + 1)
   }
 
-  def run(): Future[(Index, String)] = allBatch(0, runOne)
+  def run(): Future[(Int, String)] = allBatch(0, runOne)
 }

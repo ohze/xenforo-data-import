@@ -3,12 +3,13 @@ package com.sandinh.ambryimport
 import better.files._
 import java.nio.file.Files
 import gigahorse._
-import support.akkahttp.Gigahorse
+import support.okhttp.Gigahorse
 
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class AmbryApi(boot: Boot) {
-  import boot.http, boot.actorSystem.dispatcher
+  import boot.http
 
   private val AuthorizeHeader = "Authorization" -> boot.conf.getString("ambry.header.authorize")
   private val ServiceIdHeader = "x-ambry-service-id" -> boot.conf.getString("ambry.header.serviceid")

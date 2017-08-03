@@ -4,6 +4,7 @@ import io.getquill._
 import scala.concurrent.duration._
 import scala.concurrent.Await
 import com.typesafe.scalalogging.Logger
+import scala.concurrent.ExecutionContext.Implicits.global
 
 object Main {
   private val logger = Logger[Main.type]
@@ -19,14 +20,13 @@ object Main {
           |$0 attachment""".stripMargin)
     } else {
       val boot = new Boot
-      import boot.actorSystem.dispatcher
       val ambryApi = new AmbryApi(boot)
       val f =
         if (runAvatar) new AvatarImport(boot, ambryApi).run()
         else new AttachmentImport(boot, ambryApi).run()
 
       while (!f.isCompleted) Thread.sleep(300)
-      val (lastOffset, doneReason) = Await.result(f, Duration.Zero)
+      val (lastOffset, doneReason) = Await.result(f, 5.seconds)
       logger.info(s"done at $lastOffset: $doneReason")
     }
   }

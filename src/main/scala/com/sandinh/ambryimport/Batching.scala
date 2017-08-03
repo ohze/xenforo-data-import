@@ -13,7 +13,7 @@ object Batching {
     logic(from).flatMap {
       case r@(b, doneReason) =>
         if (doneReason != null) Future successful r
-        else logic(next(b))
+        else run(next(b), logic, next)
     }
   }
 }
