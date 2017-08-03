@@ -1,5 +1,3 @@
-enablePlugins(DockerPlugin)
-
 lazy val coreSettings = Seq(
   name := "ambry-import-xenforo",
   organization := "com.sandinh",
@@ -30,13 +28,13 @@ lazy val packagerSettings = Seq(
   daemonUserUid in Docker := Some("82"),
   daemonGroup in Docker := "www-data",
   daemonGroupGid in Docker := Some("82"),
-  maintainer in Docker := "Gia Bao <giabao@sandinh.net>",
-  dockerBaseImage in Docker := "openjdk:8-jre-alpine",
-  mappings in Docker := (mappings in Universal).value,
+  maintainer := "Gia Bao <giabao@sandinh.net>",
+  dockerBaseImage := "openjdk:8-jre-alpine",
   DockerHelper.dockerCommandsSetting
 ) ++ DockerHelper.mappingsSettings
 
 lazy val root = (project in file("."))
+  .enablePlugins(JavaAppPackaging, UniversalPlugin, DockerPlugin, AshScriptPlugin)
   .settings(
     coreSettings ++
     dependencySettings ++
