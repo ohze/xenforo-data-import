@@ -1,9 +1,10 @@
 package com.sandinh.ambryimport
 
 import better.files.File
-import com.sandinh.ambryimport.model.XfAttachmentData
+import com.sandinh.ambryimport.model.{AmbryAttachment, XfAttachmentData}
 import com.typesafe.scalalogging.Logger
 import play.api.libs.json.Json
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.Future
@@ -59,7 +60,7 @@ class AttachmentImport(boot: Boot, ambryApi: AmbryApi) {
               "t" -> tpe
             ).map(tpe -> _)
         }.flatMap { ambry =>
-          val d2 = d.copy(ambry = Json.toJson(ambry).toString)
+          val d2 = d.copy(ambry = Json.toJson(AmbryAttachment(ambry)).toString)
           ctx.run(q
             .filter(_.dataId == lift(d.dataId))
             .update(lift(d2))

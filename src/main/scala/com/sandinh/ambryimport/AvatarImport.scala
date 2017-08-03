@@ -1,9 +1,10 @@
 package com.sandinh.ambryimport
 
 import better.files.File
-import com.sandinh.ambryimport.model.XfUser
+import com.sandinh.ambryimport.model.{AmbryAvatar, XfUser}
 import com.typesafe.scalalogging.Logger
 import play.api.libs.json.Json
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Success, Try}
@@ -45,7 +46,7 @@ class AvatarImport(boot: Boot, ambryApi: AmbryApi) {
         Future.traverse(maybeFiles.get) {
           case (size, f) => ambryApi.put(f, u.userId.toString, "size" -> size).map(size -> _)
         }.flatMap { ambry =>
-          val u2 = u.copy(ambry = Json.toJson(ambry).toString)
+          val u2 = u.copy(ambry = Json.toJson(AmbryAvatar(ambry)).toString)
           ctx.run(q
             .filter(_.userId == lift(u.userId))
             .update(lift(u2))

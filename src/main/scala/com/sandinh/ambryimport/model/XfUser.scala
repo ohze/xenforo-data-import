@@ -13,3 +13,14 @@ case class XfUser(userId: Int, username: String, email: String,
                   isModerator: Byte, isAdmin: Byte, isBanned: Byte,
                   likeCount: Int, warningPoints: Int, isStaff: Byte,
                   ambry: String)
+
+case class AmbryAvatar(l: String, m: String, s: String)
+object AmbryAvatar {
+  def apply(ambry: List[(String, String)]): AmbryAvatar = {
+    val a = ambry.toMap
+    AmbryAvatar(a("l"), a("m"), a("s"))
+  }
+
+  import play.api.libs.json._
+  implicit val writer = Json.writes[AmbryAvatar]
+}
