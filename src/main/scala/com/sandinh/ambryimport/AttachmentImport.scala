@@ -15,7 +15,7 @@ class AttachmentImport(boot: Boot, ambryApi: AmbryApi) {
 
 
   /** see XenForo_Model_Attachment::getAttachmentDataFilePath */
-  private def getAttachmentDataFilePath(d: XfAttachmentData): String = {
+  private def getAttachmentDataFilePath(d: XfAttachmentData): String = boot.rootDir + {
     if(d.filePath == null || d.filePath == "") {
       s"${boot.internalDataDir}/attachments/${d.dataId /1000}/${d.dataId}-${d.fileHash}.data"
     } else {
@@ -28,7 +28,7 @@ class AttachmentImport(boot: Boot, ambryApi: AmbryApi) {
     }
   }
   private def getAttachmentThumbnailFilePath(d: XfAttachmentData) =
-    s"${boot.dataDir}/attachments/${d.dataId /1000}/${d.dataId}-${d.fileHash}.jpg"
+    s"${boot.rootDir}${boot.dataDir}/attachments/${d.dataId /1000}/${d.dataId}-${d.fileHash}.jpg"
 
   import Main.ctx
   import boot.actorSystem.dispatcher
