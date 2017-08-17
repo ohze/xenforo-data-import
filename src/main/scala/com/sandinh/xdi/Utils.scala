@@ -1,4 +1,4 @@
-package com.sandinh.ambryimport
+package com.sandinh.xdi
 
 import better.files.File
 import com.sksamuel.scrimage.FormatDetector

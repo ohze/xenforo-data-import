@@ -1,7 +1,8 @@
 package com.sandinh.ambryimport
 
 import better.files.File
-import com.sandinh.ambryimport.model.{AmbryAttachment, XfAttachmentData}
+import com.sandinh.xdi.{Utils, XdiConfig}
+import com.sandinh.xdi.model.{AmbryAttachment, AttachmentData}
 import com.typesafe.scalalogging.Logger
 import play.api.libs.json.Json
 
@@ -10,35 +11,35 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.Future
 import scala.util.{Success, Try}
 
-class AttachmentImport(boot: Boot, ambryApi: AmbryApi) {
+class AttachmentImport(cfg: XdiConfig, ambryApi: AmbryApi) {
   private val logger = Logger[AttachmentImport]
   private val LIMIT = 100
 
 
   /** see XenForo_Model_Attachment::getAttachmentDataFilePath */
-  private def getAttachmentDataFilePath(d: XfAttachmentData): String = boot.rootDir + {
+  private def getAttachmentDataFilePath(d: AttachmentData): String = cfg.rootDir + {
     if(d.filePath == null || d.filePath == "") {
-      s"${boot.internalDataDir}/attachments/${d.dataId /1000}/${d.dataId}-${d.fileHash}.data"
+      s"${cfg.internalDataDir}/attachments/${d.dataId /1000}/${d.dataId}-${d.fileHash}.data"
     } else {
       Utils.strtr(d.filePath,
-        "%INTERNAL%" -> boot.internalDataDir,
-        "%DATA%" -> boot.dataDir,
+        "%INTERNAL%" -> cfg.internalDataDir,
+        "%DATA%" -> cfg.dataDir,
         "%DATA_ID%" -> d.dataId.toString,
         "%FLOOR%" -> (d.dataId /1000).toString,
         "%HASH%" -> d.fileHash)
     }
   }
-  private def getAttachmentThumbnailFilePath(d: XfAttachmentData) =
-    s"${boot.rootDir}${boot.dataDir}/attachments/${d.dataId /1000}/${d.dataId}-${d.fileHash}.jpg"
+  private def getAttachmentThumbnailFilePath(d: AttachmentData) =
+    s"${cfg.rootDir}${cfg.dataDir}/attachments/${d.dataId /1000}/${d.dataId}-${d.fileHash}.jpg"
 
-  import Main.ctx
+  import com.sandinh.xdi.Main.ctx
   import ctx._
-  private val q = quote(query[XfAttachmentData])
+  private val q = quote(query[AttachmentData])
 
   /**
     * @return done reason. Reason == null mean not done
     */
-  private def runOne(d: XfAttachmentData): Future[String] = {
+  private def runOne(d: AttachmentData): Future[String] = {
     if (d.ambry != "" && Try(Json.parse(d.ambry)).isSuccess) {
       Future successful null
     } else {
@@ -79,7 +80,7 @@ class AttachmentImport(boot: Boot, ambryApi: AmbryApi) {
     * @return the last processed index & doneReason
     */
   private def allBatch(offsetFrom: Int,
-          logic1: XfAttachmentData => Future[String]): Future[(Int, String)] = {
+          logic1: AttachmentData => Future[String]): Future[(Int, String)] = {
     /** run from `from` to `from + LIMIT`
       * @return lastIndex -> done reason */
     def oneBatch(from: Int): Future[(Int, String)] = {

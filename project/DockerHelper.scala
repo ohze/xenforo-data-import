@@ -13,16 +13,16 @@ object DockerHelper {
 
   val mappingsSettings: Seq[Def.Setting[_]] = inConfig(Docker)(Seq(
     mappings := {
-      //(mappings, name, defaultLinuxInstallLocation, streams)
-      val excludes = List(
-        s"bin/${name.value}.bat"
-      ).map(f => s"${defaultLinuxInstallLocation.value}/$f")
+      def isExclude(p: String) = p == defaultLinuxInstallLocation.value + "/bin/" + name.value + ".bat"
+      def warn(msg: String) = streams.value.log.warn(msg)
 
       mappings.value.filterNot { case (_, p) =>
-        val isExclude = excludes.contains(p)
-        if (isExclude)
-          streams.value.log.warn(s"docker - excluding $p")
-        isExclude
+        if (isExclude(p)) {
+          warn(s"docker - excluding $p")
+          true
+        } else {
+          false
+        }
       }
     }
   ))

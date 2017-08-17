@@ -1,13 +1,16 @@
 package com.sandinh.ambryimport
 
 import java.nio.file.Files
+
 import better.files._
+import com.sandinh.xdi.{Utils, XdiConfig}
 import com.softwaremill.sttp._
 import com.softwaremill.sttp.okhttp.OkHttpFutureClientHandler
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class AmbryApi(boot: Boot) {
+class AmbryApi(boot: XdiConfig) {
   private val AuthorizeHeader = "Authorization" -> boot.conf.getString("ambry.header.authorize")
   private val ServiceIdHeader = "x-ambry-service-id" -> boot.conf.getString("ambry.header.serviceid")
   private val ambryUrl = boot.conf.getString("ambry.url")

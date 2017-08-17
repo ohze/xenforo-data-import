@@ -1,5 +1,6 @@
 /.idea/
 /project/target/
-/project/project/
+/project/project/target/
+/project/project/project/
 /target/
 /bin/

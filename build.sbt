@@ -1,5 +1,5 @@
 lazy val coreSettings = Seq(
-  name := "ambry-import-xenforo",
+  name := "xenforo-data-import",
   organization := "com.sandinh",
   scalaVersion := "2.12.3",
   version      := "0.1.0-SNAPSHOT",
@@ -7,6 +7,9 @@ lazy val coreSettings = Seq(
 )
 
 lazy val dependencies = Seq(
+  "com.sandinh" % "minio" % "3.0.7", //TODO use io.minio:minio when version 3.0.7 available
+  "com.typesafe.akka" %% "akka-actor" % "2.5.4",
+  "com.typesafe.akka" %% "akka-stream" % "2.5.4",
   "org.scalatest" %% "scalatest" % "3.0.3" % "test",
   "com.sksamuel.scrimage" %% "scrimage-core" % "2.1.8",
   "com.typesafe.play" %% "play-json" % "2.6.2",
@@ -17,12 +20,13 @@ lazy val dependencies = Seq(
 )
 
 lazy val dependencySettings = Seq(
+  resolvers += Resolver.sonatypeRepo("releases"),
   libraryDependencies ++= dependencies
 )
 
 lazy val packagerSettings = Seq(
   dockerUsername := Some("sandinh"),
-  packageName in Docker := "ambry-import-xenforo",
+  packageName in Docker := "xenforo-data-import",
   daemonUser in Docker := "ambry",
   daemonUserUid in Docker := Some("82"),
   daemonGroup in Docker := "www-data",

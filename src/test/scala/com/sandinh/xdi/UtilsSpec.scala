@@ -1,4 +1,4 @@
-package com.sandinh.ambryimport
+package com.sandinh.xdi
 
 import org.scalatest._
 
