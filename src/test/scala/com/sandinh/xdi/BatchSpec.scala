@@ -10,7 +10,6 @@ import org.scalatest._
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.util.{Failure, Success}
 
 object BatchSpec {
   type T=Int
@@ -40,12 +39,12 @@ class BatchSpec extends FlatSpec with Matchers {
   "Batch" should "correct" in {
     implicit val system = ActorSystem("xdi_")
     implicit val materializer = ActorMaterializer()
-    import system.dispatcher
     val logger = Logging(system, "xdi.BatchSpec")
-    val batch = new Batch[T](new TestDao, new TestWorker)
-    val rf = batch.source.runWith(batch.sink)
+    val fromPage = 2
+    val batch = new Batch[T](new TestDao, new TestWorker, fromPage)
+    val rf = batch.source().runWith(batch.sink)
     val r = Await.result(rf, Duration.Inf)
-    r shouldEqual TestWorker.runRet * TestDao.fetchRet.length * (TestDao.lastPage + 1)
+    r shouldEqual TestWorker.runRet * TestDao.fetchRet.length * (TestDao.lastPage + 1 - fromPage)
     system.terminate()
   }
 }

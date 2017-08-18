@@ -19,32 +19,24 @@ object Main {
   val ctx = new MysqlAsyncContext[SnakeCase]("db.default")
 
   def main(args: Array[String]): Unit = {
-    val runAvatar = args.length == 1 && args(0) == "avatar"
-    val runAttachment = args.length == 1 && args(0) == "attachment"
-    if (!runAvatar && !runAttachment) {
-      println(
-        """usages:
-          |$0 avatar
-          |$0 attachment""".stripMargin)
+    implicit val system = ActorSystem("xdi")
+    val logger = Logging(system, "xdi.Main")
+    implicit val materializer = ActorMaterializer()
+    implicit val tscfg: Config = ConfigFactory.load()
+    implicit val cfg = new XdiConfig
+    implicit val api = new Api
+    val fromPage = tscfg.getInt("xdi.from")
+    val batch = if (tscfg.getString("xdi.run") == "avatar") {
+      new Batch[XfUser](new UserDao, new AvatarWorker, fromPage)
     } else {
-      implicit val system = ActorSystem("xdi")
-      val logger = Logging(system, "xdi.Main")
-      implicit val materializer = ActorMaterializer()
-      implicit val tscfg: Config = ConfigFactory.load()
-      implicit val cfg = new XdiConfig
-      implicit val api = new Api
-      val batch = if (runAvatar) {
-        new Batch[XfUser](new UserDao, new AvatarWorker)
-      } else {
-        new Batch[XfAttachmentData](new AttachmentDataDao, new AttachmentWorker)
-      }
-      val r = batch.source.runWith(batch.sink)
-      r.onComplete {
-        case Success(stats) => logger.info("done! {}", stats)
-        case Failure(e) => logger.error("error", e)
-      }
-      Await.result(r, Duration.Inf)
-      system.terminate()
+      new Batch[XfAttachmentData](new AttachmentDataDao, new AttachmentWorker, fromPage)
     }
+    val r = batch.source().runWith(batch.sink)
+    r.onComplete {
+      case Success(stats) => logger.info("done! {}", stats)
+      case Failure(e) => logger.error("error", e)
+    }
+    Await.result(r, Duration.Inf)
+    system.terminate()
   }
 }
