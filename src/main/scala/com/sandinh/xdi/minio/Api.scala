@@ -25,8 +25,8 @@ object PutStats {
   val FileNotFound = PutStats(0, 0, 1)
   def sum(l: List[PutStats]): PutStats = l.reduce(_ + _)
   def apply(state: PutState): PutStats = state match {
-    case PutStats.RePut => PutStats.RePut
-    case PutStats.NewPut => PutStats.NewPut
+    case Api.RePut => PutStats.RePut
+    case Api.NewPut => PutStats.NewPut
     case null => Zero
   }
 }
