@@ -15,6 +15,8 @@ import scala.util.{Failure, Success, Try}
 
 case class PutStats(rePut: Int, newPut: Int, fileNotFound: Int) {
   def +(b: PutStats): PutStats = PutStats(rePut + b.rePut, newPut + b.newPut, fileNotFound + b.fileNotFound)
+
+  override def toString: String = s"$rePut,$newPut,$fileNotFound"
 }
 object PutStats {
   val Zero = PutStats(0, 0, 0)

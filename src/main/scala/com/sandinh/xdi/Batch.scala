@@ -15,14 +15,18 @@ import scala.concurrent.{ExecutionContext, Future}
 class Batch[T](dao: Dao[T], worker: Worker[T])(implicit system: ActorSystem) {
   private val logger = Logging(system, "xdi.Batch")
   val sink: Sink[PutStats, Future[PutStats]] = Sink.fold(PutStats.Zero) {
-    case (acc, stats) =>
-      logger.info(">--> {}", stats)
-      acc + stats
+    case (acc, stats) => acc + stats
+  }
+
+  private val logSink = Sink.fold[(Int, PutStats), PutStats](0 -> PutStats.Zero) {
+    case ((page, acc), s) =>
+      logger.info("{}:{}={}", page, s, acc)
+      (page + 1, acc + s)
   }
 
   def source(implicit ec: ExecutionContext): Source[PutStats, NotUsed] =
     toSource(dao.fetch)
-      .mapAsync(1)(xs => Future.traverse(xs)(worker.run).map(PutStats.sum))
+      .mapAsync(1)(xs => Future.traverse(xs)(worker.run).map(PutStats.sum)).alsoTo(logSink)
 
   /**
     * Convert a data fetching function to a source of data
