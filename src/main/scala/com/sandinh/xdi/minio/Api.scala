@@ -54,7 +54,7 @@ class Api(implicit cfg: Config, system: ActorSystem) {
         case Success(o) =>
           if (o.etag() == f.md5.toLowerCase) null else RePut
         case Failure(e: ErrorResponseException) if e.errorResponse.errorCode == ErrorCode.NO_SUCH_KEY => NewPut
-        case Failure(e) => logger.error(s"!statObject $objName", e); null
+        case Failure(e) => logger.error("!statObject {} {}", objName, e); null
       }
 
       if (state != null) {
