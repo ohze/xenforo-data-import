@@ -50,14 +50,14 @@ object DockerHelper {
 
     Seq(
       Cmd("FROM", dockerBaseImage.value),
-      Cmd("MAINTAINER", maintainer.value),
+      Cmd("LABEL", "maintainer=\"" + maintainer.value + "\""),
       addCmd,
       Cmd("WORKDIR", dockerBaseDirectory),
       runCmd,
       Cmd("ENV", "JAVA_OPTS", defaultJavaOpts.mkString("\"", " ", "\""))) ++
       Seq(
         Cmd("USER", user),
-        ExecCmd("CMD", entry: _*)
+        ExecCmd("ENTRYPOINT", entry: _*)
       )
   }
 }
