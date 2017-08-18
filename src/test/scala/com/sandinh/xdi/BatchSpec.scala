@@ -6,6 +6,7 @@ import akka.stream.ActorMaterializer
 import com.sandinh.xdi.dao.Dao
 import com.sandinh.xdi.minio.PutStats
 import com.sandinh.xdi.work.Worker
+import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest._
 
 import scala.concurrent.duration.Duration
@@ -39,7 +40,7 @@ class BatchSpec extends FlatSpec with Matchers {
   "Batch" should "correct" in {
     implicit val system = ActorSystem("xdi_")
     implicit val materializer = ActorMaterializer()
-    val logger = Logging(system, "xdi.BatchSpec")
+    implicit val tscfg: Config = ConfigFactory.load()
     val fromPage = 2
     val batch = new Batch[T](new TestDao, new TestWorker, fromPage)
     val rf = batch.source().runWith(batch.sink)

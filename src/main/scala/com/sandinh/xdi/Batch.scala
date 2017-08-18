@@ -1,5 +1,7 @@
 package com.sandinh.xdi
 
+import java.util.concurrent.TimeUnit.MILLISECONDS
+
 import akka.NotUsed
 import akka.actor.ActorSystem
 import akka.event.Logging
@@ -7,12 +9,13 @@ import akka.stream.scaladsl.{Sink, Source}
 import com.sandinh.xdi.dao.Dao
 import com.sandinh.xdi.minio.PutStats
 import com.sandinh.xdi.work.Worker
+import com.typesafe.config.Config
 
 import scala.concurrent.Future
 
 /** see http://koff.io/posts/pagination-and-streams/
   * @tparam T underlying data type, ex XfUser */
-class Batch[T](dao: Dao[T], worker: Worker[T], fromPage: Int)(implicit system: ActorSystem) {
+class Batch[T](dao: Dao[T], worker: Worker[T], fromPage: Int)(implicit system: ActorSystem, cfg: Config) {
   import system.dispatcher
 
   private val logger = Logging(system, "xdi.Batch")
@@ -22,7 +25,9 @@ class Batch[T](dao: Dao[T], worker: Worker[T], fromPage: Int)(implicit system: A
 
   private val logSink = Sink.fold[(Long, Int, PutStats), PutStats]((System.currentTimeMillis(), fromPage, PutStats.Zero)) {
     case ((time, page, acc), s) =>
-      val logTime = if (s != PutStats.Zero || System.currentTimeMillis() - time > 5000) {
+      val logTime = if (/*s != PutStats.Zero ||*/
+        System.currentTimeMillis() - time > cfg.getDuration("xdi.log.limit", MILLISECONDS))
+      {
         logger.info("{}:{}={}", page, s, acc)
         System.currentTimeMillis()
       } else {
