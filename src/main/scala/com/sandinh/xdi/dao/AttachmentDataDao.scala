@@ -5,7 +5,7 @@ import com.typesafe.config.Config
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class AttachmentDataDao(cfg: Config) extends Dao[XfAttachmentData] {
+class AttachmentDataDao(implicit cfg: Config) extends Dao[XfAttachmentData] {
   private val limit = cfg.getInt("xdi.limit")
   import com.sandinh.xdi.Main.ctx
   import ctx._

@@ -10,6 +10,7 @@ lazy val dependencies = Seq(
   "com.sandinh" % "minio" % "3.0.7", //TODO use io.minio:minio when version 3.0.7 available
   "com.typesafe.akka" %% "akka-actor" % "2.5.4",
   "com.typesafe.akka" %% "akka-stream" % "2.5.4",
+  "com.typesafe.akka" %% "akka-slf4j" % "2.5.4",
   "org.scalatest" %% "scalatest" % "3.0.3" % Test,
   "com.sksamuel.scrimage" %% "scrimage-core" % "2.1.8",
   "com.github.pathikrit" %% "better-files" % "3.0.0",

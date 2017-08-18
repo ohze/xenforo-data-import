@@ -5,7 +5,7 @@ import com.typesafe.config.Config
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class UserDao(cfg: Config) extends Dao[XfUser] {
+class UserDao(implicit cfg: Config) extends Dao[XfUser] {
   private val limit = cfg.getInt("xdi.limit")
   import com.sandinh.xdi.Main.ctx, ctx._
   private val q = quote(query[XfUser])

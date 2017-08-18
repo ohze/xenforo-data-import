@@ -1,17 +1,28 @@
 package com.sandinh.xdi
 
 import akka.NotUsed
-import akka.stream.scaladsl.Source
+import akka.actor.ActorSystem
+import akka.event.Logging
+import akka.stream.scaladsl.{Sink, Source}
 import com.sandinh.xdi.dao.Dao
+import com.sandinh.xdi.minio.PutStats
 import com.sandinh.xdi.work.Worker
+
 import scala.concurrent.{ExecutionContext, Future}
 
 /** see http://koff.io/posts/pagination-and-streams/
   * @tparam T underlying data type, ex XfUser */
-class Batch[T](dao: Dao[T], worker: Worker[T]) {
-  def source(implicit ec: ExecutionContext): Source[Unit, NotUsed] =
+class Batch[T](dao: Dao[T], worker: Worker[T])(implicit system: ActorSystem) {
+  private val logger = Logging(system, "xdi.Batch")
+  val sink: Sink[PutStats, Future[PutStats]] = Sink.fold(PutStats.Zero) {
+    case (acc, stats) =>
+      logger.info(">--> {}", stats)
+      acc + stats
+  }
+
+  def source(implicit ec: ExecutionContext): Source[PutStats, NotUsed] =
     toSource(dao.fetch)
-      .mapAsync(1)(xs => Future.traverse(xs)(worker.run).map(_ => Unit))
+      .mapAsync(1)(xs => Future.traverse(xs)(worker.run).map(PutStats.sum))
 
   /**
     * Convert a data fetching function to a source of data

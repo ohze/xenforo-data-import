@@ -1,14 +1,19 @@
 package com.sandinh.xdi.work
 
+import akka.actor.ActorSystem
+import akka.event.Logging
 import better.files.File
 import com.sandinh.xdi.{Utils, XdiConfig}
-import com.sandinh.xdi.minio.Api
+import com.sandinh.xdi.minio.{Api, PutStats}
 import com.sandinh.xdi.model.XfAttachmentData
 
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
-class AttachmentWorker(cfg: XdiConfig, api: Api) extends Worker[XfAttachmentData] {
+class AttachmentWorker(implicit cfg: XdiConfig, api: Api, system: ActorSystem) extends Worker[XfAttachmentData] {
+  private val logger = Logging(system, "xdi.Attachment")
+  import system.dispatcher
+
   /** see XenForo_Model_Attachment::getAttachmentDataFilePath */
   private def getAttachmentDataFilePath(d: XfAttachmentData): String = cfg.rootDir + {
     if(d.filePath == null || d.filePath == "") {
@@ -25,7 +30,7 @@ class AttachmentWorker(cfg: XdiConfig, api: Api) extends Worker[XfAttachmentData
   private def getAttachmentThumbnailFilePath(d: XfAttachmentData) =
     s"${cfg.rootDir}${cfg.dataDir}/attachments/${d.dataId /1000}/${d.dataId}-${d.fileHash}.jpg"
 
-  def run(d: XfAttachmentData)(implicit ec: ExecutionContext): Future[Unit] = {
+  def run(d: XfAttachmentData): Future[PutStats] = {
     val file = File(getAttachmentDataFilePath(d))
     val isImage = Utils.isImage(file)
     val files = ListBuffer(cfg.objName(file, internal = true) -> file)
@@ -35,11 +40,16 @@ class AttachmentWorker(cfg: XdiConfig, api: Api) extends Worker[XfAttachmentData
     }
     Future.traverse(files.result()) {
       case (objName, f) =>
-        val attachType = if (isImage) "inline" else "attachment"
-        api.put(objName, f, Map(
-          "owner" -> d.userId.toString,
-          "Content-Disposition" -> (attachType + "; filename=\"" + f.name + "\"")
-        ))
-    }.map(_ => Unit)
+        if (f.exists) {
+          val attachType = if (isImage) "inline" else "attachment"
+          api.put(objName, f, Map(
+            "owner" -> d.userId.toString,
+            "Content-Disposition" -> (attachType + "; filename=\"" + f.name + "\"")
+          )).map(PutStats.toStats)
+        } else {
+          //print("!" + Integer.toString(d.dataId, 36))
+          Future successful PutStats.FileNotFound
+        }
+    }.map(PutStats.sum)
   }
 }
