@@ -45,7 +45,7 @@ class AttachmentWorker(implicit cfg: XdiConfig, api: Api, system: ActorSystem) e
           api.put(objName, f, Map(
             "owner" -> d.userId.toString,
             "Content-Disposition" -> (attachType + "; filename=\"" + f.name + "\"")
-          )).map(PutStats.toStats)
+          )).map(PutStats.apply)
         } else {
           //print("!" + Integer.toString(d.dataId, 36))
           Future successful PutStats.FileNotFound

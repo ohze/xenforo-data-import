@@ -22,9 +22,9 @@ object PutStats {
   val NewPut = PutStats(0, 1, 0)
   val FileNotFound = PutStats(0, 0, 1)
   def sum(l: List[PutStats]): PutStats = l.reduce(_ + _)
-  def toStats(state: PutState): PutStats = state match {
-    case RePut => PutStats.RePut
-    case NewPut => PutStats.NewPut
+  def apply(state: PutState): PutStats = state match {
+    case PutStats.RePut => PutStats.RePut
+    case PutStats.NewPut => PutStats.NewPut
     case null => Zero
   }
 }

@@ -25,7 +25,7 @@ class AvatarWorker(implicit cfg: XdiConfig, api: Api, system: ActorSystem) exten
         val f = avatarFile(u, size)
         val objName = cfg.objName(f, internal = false)
         if (f.exists) {
-          api.put(objName, f, Map.empty[String, String]).map(PutStats.toStats)
+          api.put(objName, f, Map.empty[String, String]).map(PutStats.apply)
         } else {
           //print("!" + Integer.toString(u.userId, 36))
           //logger.warning("!file {}", objName)
