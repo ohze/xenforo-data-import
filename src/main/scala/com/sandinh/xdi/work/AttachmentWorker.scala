@@ -31,6 +31,9 @@ class AttachmentWorker(implicit cfg: XdiConfig, api: Api, system: ActorSystem) e
 
   def run(d: XfAttachmentData): Future[PutStats] = {
     val file = File(getAttachmentDataFilePath(d))
+    if (!file.exists) {
+      return Future successful PutStats.FileNotFound
+    }
     val isImage = Utils.isImage(file)
     val files = ListBuffer(cfg.objName(file, internal = true) -> file)
     if (isImage) {
