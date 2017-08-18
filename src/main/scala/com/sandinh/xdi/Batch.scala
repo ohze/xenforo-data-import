@@ -20,10 +20,15 @@ class Batch[T](dao: Dao[T], worker: Worker[T], fromPage: Int)(implicit system: A
     case (acc, stats) => acc + stats
   }
 
-  private val logSink = Sink.fold[(Int, PutStats), PutStats](fromPage -> PutStats.Zero) {
-    case ((page, acc), s) =>
-      logger.info("{}:{}={}", page, s, acc)
-      (page + 1, acc + s)
+  private val logSink = Sink.fold[(Long, Int, PutStats), PutStats]((System.currentTimeMillis(), fromPage, PutStats.Zero)) {
+    case ((time, page, acc), s) =>
+      val logTime = if (s != PutStats.Zero || System.currentTimeMillis() - time > 5000) {
+        logger.info("{}:{}={}", page, s, acc)
+        System.currentTimeMillis()
+      } else {
+        time
+      }
+      (logTime, page + 1, acc + s)
   }
 
   def source(): Source[PutStats, NotUsed] =
