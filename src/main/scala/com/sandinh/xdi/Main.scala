@@ -3,12 +3,13 @@ package com.sandinh.xdi
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl.Sink
-import com.sandinh.xdi.dao.UserDao
+import com.sandinh.xdi.dao.{AttachmentDataDao, UserDao}
 import com.sandinh.xdi.minio.Api
-import com.sandinh.xdi.model.User
-import com.sandinh.xdi.work.AvatarWorker
+import com.sandinh.xdi.model.{AttachmentData, User}
+import com.sandinh.xdi.work.{AttachmentWorker, AvatarWorker}
 import com.typesafe.scalalogging.Logger
 import io.getquill._
+
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
@@ -30,10 +31,11 @@ object Main {
       implicit val system = ActorSystem("xdi")
       implicit val materializer = ActorMaterializer()
       val cfg = new XdiConfig
+      val api = new Api(cfg.conf)
       val batch = if (runAvatar) {
-        new Batch[User](new UserDao(cfg.conf), new AvatarWorker(cfg, new Api(cfg.conf)))
+        new Batch[User](new UserDao(cfg.conf), new AvatarWorker(cfg, api))
       } else {
-        ???
+        new Batch[AttachmentData](new AttachmentDataDao(cfg.conf), new AttachmentWorker(cfg, api))
       }
       val noopSink = Sink.foreach[Unit](identity) //do nothing
       val r = batch.source.runWith(noopSink)
