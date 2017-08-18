@@ -8,7 +8,7 @@ import com.sandinh.xdi.Utils
 import com.typesafe.config.Config
 import io.minio.{ErrorCode, MinioClient}
 import io.minio.errors.{ErrorResponseException, InvalidArgumentException}
-
+import com.sandinh.xdi.logSourceFromString
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}

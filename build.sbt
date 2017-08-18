@@ -2,7 +2,7 @@ lazy val coreSettings = Seq(
   name := "xenforo-data-import",
   organization := "com.sandinh",
   scalaVersion := "2.12.3",
-  version      := "0.1.0-SNAPSHOT",
+  version      := "1.0.0",
   scalacOptions ++= Seq("-encoding", "UTF-8")
 )
 
