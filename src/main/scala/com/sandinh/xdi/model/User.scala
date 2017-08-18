@@ -11,5 +11,4 @@ case class User(userId: Int, username: String, email: String,
                 avatarDate: Int, avatarWidth: Short, avatarHeight: Short, gravatar: String,
                 userState: String, //'valid', 'email_confirm', 'email_confirm_edit', 'moderated', 'email_bounce'
                 isModerator: Byte, isAdmin: Byte, isBanned: Byte,
-                likeCount: Int, warningPoints: Int, isStaff: Byte,
-                ambry: String)
+                likeCount: Int, warningPoints: Int, isStaff: Byte)

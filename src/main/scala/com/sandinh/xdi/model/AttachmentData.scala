@@ -10,5 +10,4 @@ case class AttachmentData(dataId: Int,
                           height: Int,
                           thumbnailWidth: Int,
                           thumbnailHeight: Int,
-                          attachCount: Int,
-                          ambry: String)
+                          attachCount: Int)
