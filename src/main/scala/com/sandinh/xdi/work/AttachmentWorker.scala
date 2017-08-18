@@ -3,14 +3,14 @@ package com.sandinh.xdi.work
 import better.files.File
 import com.sandinh.xdi.{Utils, XdiConfig}
 import com.sandinh.xdi.minio.Api
-import com.sandinh.xdi.model.AttachmentData
+import com.sandinh.xdi.model.XfAttachmentData
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future}
 
-class AttachmentWorker(cfg: XdiConfig, api: Api) extends Worker[AttachmentData] {
+class AttachmentWorker(cfg: XdiConfig, api: Api) extends Worker[XfAttachmentData] {
   /** see XenForo_Model_Attachment::getAttachmentDataFilePath */
-  private def getAttachmentDataFilePath(d: AttachmentData): String = cfg.rootDir + {
+  private def getAttachmentDataFilePath(d: XfAttachmentData): String = cfg.rootDir + {
     if(d.filePath == null || d.filePath == "") {
       s"${cfg.internalDataDir}/attachments/${d.dataId /1000}/${d.dataId}-${d.fileHash}.data"
     } else {
@@ -22,10 +22,10 @@ class AttachmentWorker(cfg: XdiConfig, api: Api) extends Worker[AttachmentData] 
         "%HASH%" -> d.fileHash)
     }
   }
-  private def getAttachmentThumbnailFilePath(d: AttachmentData) =
+  private def getAttachmentThumbnailFilePath(d: XfAttachmentData) =
     s"${cfg.rootDir}${cfg.dataDir}/attachments/${d.dataId /1000}/${d.dataId}-${d.fileHash}.jpg"
 
-  def run(d: AttachmentData)(implicit ec: ExecutionContext): Future[Unit] = {
+  def run(d: XfAttachmentData)(implicit ec: ExecutionContext): Future[Unit] = {
     val file = File(getAttachmentDataFilePath(d))
     val isImage = Utils.isImage(file)
     val files = ListBuffer(cfg.objName(file, internal = true) -> file)
