@@ -1,7 +1,6 @@
 package com.sandinh.xdi.work
 
 import akka.actor.ActorSystem
-import akka.event.Logging
 import better.files.File
 import com.sandinh.xdi.XdiConfig
 import com.sandinh.xdi.minio.{Api, PutStats}
@@ -11,7 +10,7 @@ import scala.concurrent.Future
 
 class AvatarWorker(implicit cfg: XdiConfig, api: Api, system: ActorSystem) extends Worker[XfUser] {
   import system.dispatcher
-  private val logger = Logging(system, "xdi.Avatar")
+//  private val logger = Logging(system, "xdi.Avatar")
   private val sizes = List("l", "m", "s")
   private def avatarFile(u: XfUser, size: String): File = {
     val group = u.userId / 1000

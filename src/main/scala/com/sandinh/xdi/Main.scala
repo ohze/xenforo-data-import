@@ -3,12 +3,11 @@ package com.sandinh.xdi
 import akka.actor.ActorSystem
 import akka.event.Logging
 import akka.stream.ActorMaterializer
-import akka.stream.scaladsl.Sink
 import com.sandinh.xdi.dao.{AttachmentDataDao, UserDao}
-import com.sandinh.xdi.minio.{Api, PutStats}
+import com.sandinh.xdi.minio.Api
 import com.sandinh.xdi.model.{XfAttachmentData, XfUser}
 import com.sandinh.xdi.work.{AttachmentWorker, AvatarWorker}
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{Config, ConfigFactory}
 import io.getquill._
 
 import scala.concurrent.Await
@@ -31,7 +30,7 @@ object Main {
       implicit val system = ActorSystem("xdi")
       val logger = Logging(system, "xdi.Main")
       implicit val materializer = ActorMaterializer()
-      implicit val tscfg = ConfigFactory.load()
+      implicit val tscfg: Config = ConfigFactory.load()
       implicit val cfg = new XdiConfig
       implicit val api = new Api
       val batch = if (runAvatar) {

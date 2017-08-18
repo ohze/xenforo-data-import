@@ -1,7 +1,6 @@
 package com.sandinh.xdi.work
 
 import akka.actor.ActorSystem
-import akka.event.Logging
 import better.files.File
 import com.sandinh.xdi.{Utils, XdiConfig}
 import com.sandinh.xdi.minio.{Api, PutStats}
@@ -11,7 +10,7 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.Future
 
 class AttachmentWorker(implicit cfg: XdiConfig, api: Api, system: ActorSystem) extends Worker[XfAttachmentData] {
-  private val logger = Logging(system, "xdi.Attachment")
+//  private val logger = Logging(system, "xdi.Attachment")
   import system.dispatcher
 
   /** see XenForo_Model_Attachment::getAttachmentDataFilePath */

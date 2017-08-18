@@ -4,7 +4,7 @@ import akka.actor.ActorSystem
 import akka.event.Logging
 import better.files.File
 import com.sandinh.xdi.minio.Api.PutState
-import com.sandinh.xdi.{Main, Utils}
+import com.sandinh.xdi.Utils
 import com.typesafe.config.Config
 import io.minio.{ErrorCode, MinioClient}
 import io.minio.errors.{ErrorResponseException, InvalidArgumentException}
