@@ -15,15 +15,17 @@ import scala.concurrent.Future
 
 /** see http://koff.io/posts/pagination-and-streams/
   * @tparam T underlying data type, ex XfUser */
-class Batch[T](dao: Dao[T], worker: Worker[T], fromPage: Int)(implicit system: ActorSystem, cfg: Config) {
+class Batch[T](dao: Dao[T], worker: Worker[T], fromPage: Int, logsource: String = "xdi.Batch")
+              (implicit system: ActorSystem, cfg: Config) {
   import system.dispatcher
 
-  private val logger = Logging(system, "xdi.Batch")
+  private val logger = Logging(system, logsource)
   val sink: Sink[PutStats, Future[PutStats]] = Sink.fold(PutStats.Zero) {
     case (acc, stats) => acc + stats
   }
 
-  private val logSink = Sink.fold[(Long, Int, PutStats), PutStats]((System.currentTimeMillis(), fromPage, PutStats.Zero)) {
+  private val logSink = Sink.fold[(Long, Int, PutStats), PutStats](
+    (System.currentTimeMillis(), fromPage, PutStats.Zero)) {
     case ((time, page, acc), s) =>
       val logTime = if (/*s != PutStats.Zero ||*/
         System.currentTimeMillis() - time > cfg.getDuration("xdi.log.limit", MILLISECONDS))
