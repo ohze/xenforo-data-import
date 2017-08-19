@@ -38,7 +38,7 @@ class AttachmentWorker(implicit cfg: XdiConfig, api: Api, system: ActorSystem) e
     val files = ListBuffer(cfg.objName(file, internal = true) -> file)
     if (isImage) {
       val thumb = File(getAttachmentThumbnailFilePath(d))
-      files += cfg.objName(thumb, internal = true) -> thumb
+      files += cfg.objName(thumb, internal = false) -> thumb
     }
     Future.traverse(files.result()) {
       case (objName, f) =>
