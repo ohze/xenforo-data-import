@@ -1,7 +1,6 @@
 package com.sandinh.xdi
 
 import akka.actor.ActorSystem
-import akka.event.Logging
 import akka.stream.ActorMaterializer
 import com.sandinh.xdi.dao.Dao
 import com.sandinh.xdi.minio.PutStats
@@ -10,7 +9,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest._
 
 import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{Await, Future}
 
 object BatchSpec {
   type T=Int
@@ -19,7 +18,7 @@ object BatchSpec {
     val fetchRet = List(3,1,1, 0)
   }
   class TestDao extends Dao[T] { import TestDao._
-    def fetch(page: Int)(implicit ec: ExecutionContext): Future[List[T]] = {
+    def fetch(page: Int): Future[List[T]] = {
       if (page <= lastPage) Future successful fetchRet.map(_ + page * 5)
       else Future successful Nil
     }

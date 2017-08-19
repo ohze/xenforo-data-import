@@ -8,16 +8,12 @@ import com.sandinh.xdi.minio.Api
 import com.sandinh.xdi.model.{XfAttachmentData, XfUser}
 import com.sandinh.xdi.work.{AttachmentWorker, AvatarWorker}
 import com.typesafe.config.{Config, ConfigFactory}
-import io.getquill._
-
 import scala.concurrent.Await
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success}
 
 object Main {
-  val ctx = new MysqlAsyncContext[SnakeCase]("db.default")
-
   def main(args: Array[String]): Unit = {
     implicit val system = ActorSystem("xdi")
     val logger = Logging(system, "xdi.Main")
