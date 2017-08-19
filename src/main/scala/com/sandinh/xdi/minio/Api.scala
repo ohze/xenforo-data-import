@@ -3,7 +3,6 @@ package com.sandinh.xdi.minio
 import akka.actor.ActorSystem
 import akka.event.Logging
 import better.files.File
-import com.sandinh.xdi.minio.Api.PutState
 import com.sandinh.xdi.Utils
 import com.typesafe.config.Config
 import io.minio.{ErrorCode, MinioClient}
@@ -24,21 +23,9 @@ object PutStats {
   val NewPut = PutStats(0, 1, 0)
   val FileNotFound = PutStats(0, 0, 1)
   def sum(l: List[PutStats]): PutStats = l.reduce(_ + _)
-  def apply(state: PutState): PutStats = state match {
-    case Api.RePut => PutStats.RePut
-    case Api.NewPut => PutStats.NewPut
-    case null => Zero
-  }
-}
-
-object Api {
-  sealed trait PutState
-  case object RePut extends PutState
-  case object NewPut extends PutState
 }
 
 class Api(implicit cfg: Config, system: ActorSystem) {
-  import Api._
   private val logger = Logging(system, "xdi.Api")
 
   val bucket = cfg.getString("minio.bucket")
@@ -47,17 +34,16 @@ class Api(implicit cfg: Config, system: ActorSystem) {
   cfg.getString("minio.key"),
   cfg.getString("minio.secret"))
 
-  /** future result is nullable */
-  def put(objName: String, f: File, meta: Map[String, String])(implicit ec: ExecutionContext): Future[PutState] = {
-    def checkAndPut(): PutState = {
+  def put(objName: String, f: File, meta: Map[String, String])(implicit ec: ExecutionContext): Future[PutStats] = {
+    def checkAndPut(): PutStats = {
       val state = Try(client.statObject(bucket, objName)) match {
         case Success(o) =>
-          if (o.etag() == f.md5.toLowerCase) null else RePut
-        case Failure(e: ErrorResponseException) if e.errorResponse.errorCode == ErrorCode.NO_SUCH_KEY => NewPut
-        case Failure(e) => logger.error("!statObject {} {}", objName, e); null
+          if (o.etag() == f.md5.toLowerCase) PutStats.Zero else PutStats.RePut
+        case Failure(e: ErrorResponseException) if e.errorResponse.errorCode == ErrorCode.NO_SUCH_KEY => PutStats.NewPut
+        case Failure(e) => logger.error("!statObject {} {}", objName, e); PutStats.Zero
       }
 
-      if (state != null) {
+      if (state != PutStats.Zero) {
         logger.info(s"$state $objName")
         val headerMap = meta.updated("Content-Type", Utils.contentType(f)).asJava
         for (stream <- f.inputStream) client.putObject(bucket, objName, stream, f.size, headerMap)
