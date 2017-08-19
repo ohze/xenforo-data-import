@@ -1,7 +1,7 @@
 package com.sandinh.xdi
 
 import better.files.File
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.Config
 
 class XdiConfig(implicit conf: Config) {
   val rootDir: String = conf.getString("xf.dir.root")

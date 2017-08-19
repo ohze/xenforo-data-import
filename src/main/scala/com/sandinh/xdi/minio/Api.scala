@@ -9,7 +9,7 @@ import io.minio.{ErrorCode, MinioClient}
 import io.minio.errors.{ErrorResponseException, InvalidArgumentException}
 import com.sandinh.xdi.logSourceFromString
 import scala.collection.JavaConverters._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
 case class PutStats(rePut: Int, newPut: Int, fileNotFound: Int) {
@@ -26,15 +26,16 @@ object PutStats {
 }
 
 class Api(implicit cfg: Config, system: ActorSystem) {
+  import system.dispatcher
   private val logger = Logging(system, "xdi.Api")
 
-  val bucket = cfg.getString("minio.bucket")
+  val bucket: String = cfg.getString("minio.bucket")
   val client = new MinioClient(
   cfg.getString("minio.url"),
   cfg.getString("minio.key"),
   cfg.getString("minio.secret"))
 
-  def put(objName: String, f: File, meta: Map[String, String])(implicit ec: ExecutionContext): Future[PutStats] = {
+  def put(objName: String, f: File, meta: Map[String, String]): Future[PutStats] = {
     def checkAndPut(): PutStats = {
       val state = Try(client.statObject(bucket, objName)) match {
         case Success(o) =>

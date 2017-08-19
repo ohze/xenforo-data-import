@@ -37,7 +37,7 @@ object BatchSpec {
 class BatchSpec extends FlatSpec with Matchers {
   import BatchSpec._
   "Batch" should "correct" in {
-    implicit val system = ActorSystem("xdi_")
+    implicit val system = ActorSystem("xdi")
     implicit val materializer = ActorMaterializer()
     implicit val tscfg: Config = ConfigFactory.load()
     val fromPage = 2
